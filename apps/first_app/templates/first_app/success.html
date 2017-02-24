@@ -5,11 +5,19 @@
     <title></title>
   </head>
   <body>
-    <p>Success!!</p>
-    {{ request.session.first_name }}
-    <form action='/logout' method='POST'>
-      {% csrf_token %}
-       <input type="submit" value='Log Out'>
-     </form>
+    <a href="/logout" method='POST'>Logout</a>
+    <p>Hello, {{ request.session.first_name }}!</p>
+    <a href="/travels/add">Add Travel Plan</a>
+    <h4>Destination----TravelStartDate -----TravelEnd Date -----Plan</h4>
+    {% for trip in trips %}
+      <p><a href="/travels/destination/{{trip.id}}">{{trip.destination}}</a>----{{trip.date_from}}----{{trip.date_to}}----{{trip.description}}</p>
+    {% endfor %}
+
+    <h3>Other User's Trips</h3>
+    <h4>Name--Destination--TravelStartDate---TravelEnd Date----Plan</h4>
+    {% for trip in other_trips %}
+      <p>{{trip.user.first_name}}----<a href="/travels/destination/{{trip.id}}">{{trip.destination}}</a>----{{trip.date_from}}----{{trip.date_to}}----{{trip.description}}----<a href="/join/{{request.session.id}}/{{trip.id}}">Join</a></p>
+    {% endfor %}
+
   </body>
 </html>

@@ -18,13 +18,13 @@ class UserManager(models.Manager):
         errors = []
 
         valid = True
-        if len(email) < 1 or len(first_name) < 1 or len(last_name) < 1 or len(password) < 1 or len(confirm_password)< 1:
+        if len(email) < 1 or len(first_name) < 1 or len(last_name) < 1 or len(password) < 1 or len(confirm_password)< 1 or len(bday) <1:
             errors.append("A field can not be empty")
             valid = False
         else:
             # names
-            if len(first_name) < 2 or len(last_name) < 2:
-                errors.append("Name field needs at least two characters")
+            if len(first_name) < 3 or len(last_name) < 3:
+                errors.append("Name field needs at least three characters")
                 valid = False
             elif first_name.isalpha() == False or last_name.isalpha() == False:
                 errors.append("Name field needs to be all letters")
@@ -85,6 +85,35 @@ class UserManager(models.Manager):
 
         return False, login_messages
 
+class TripManager(models.Manager):
+    def trip_validation(self, request):
+        user_id = request.session['id']
+        destination = request.POST['destination']
+        description = request.POST['description']
+        date_to = request.POST['date_to']
+        date_from = request.POST['date_from']
+        errors = []
+
+        valid = True
+        if len(destination) < 1 or len(description) < 1 or len(date_to) < 1 or len(date_from) < 1:
+            errors.append("A field can not be empty")
+            valid = False
+        else:
+            if date_from <= unicode(datetime.today().date()) or date_to <= unicode(datetime.today().date()):
+                errors.append("Dates need to be in the future")
+                valid = False
+            if date_to <= date_from:
+                errors.append("To date needs to be after from date")
+                valid = False
+
+        if valid:
+            user = User.objects.get(id=user_id)
+            trip = Trip.objects.create(destination=destination, description=description, date_from=date_from, date_to=date_to)
+            trip.user.add(user)
+            return True, trip
+
+        return False, errors
+
 
 class User(models.Model):
     first_name = models.CharField(max_length=255)
@@ -94,3 +123,18 @@ class User(models.Model):
     created_at = models.DateTimeField(auto_now_add = True)
     updated_at = models.DateTimeField(auto_now=True)
     objects = UserManager()
+
+class Trip(models.Model):
+    user = models.ManyToManyField(User)
+    destination = models.CharField(max_length=255)
+    description = models.TextField()
+    date_from = models.CharField(max_length=255)
+    date_to = models.CharField(max_length=255)
+    created_at = models.DateTimeField(auto_now_add = True)
+    updated_at = models.DateTimeField(auto_now=True)
+    objects = TripManager()
+
+# class JoinUser(models.Model):
+#     trip = models.ForeignKey(Trip)
+#     created_at = models.DateTimeField(auto_now_add = True)
+#     updated_at = models.DateTimeField(auto_now=True)
